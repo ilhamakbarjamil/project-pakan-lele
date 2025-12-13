@@ -7,6 +7,7 @@ class FishFeederCamera:
         if not self.cap.isOpened():
             raise RuntimeError(f"Kamera tidak terdeteksi di index {camera_id}!")
         self.latest_frame = None
+        self.latest_threshold = None  # Tambahkan ini untuk menyimpan frame threshold
         self.latest_percentage = 0.0
         self.latest_status = "STABIL"
         
@@ -23,6 +24,9 @@ class FishFeederCamera:
         gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         blur = cv2.GaussianBlur(gray, (5, 5), 0)
         _, thresh = cv2.threshold(blur, 160, 255, cv2.THRESH_BINARY)
+        
+        # Simpan threshold untuk digunakan nanti
+        self.latest_threshold = thresh.copy()
         
         # Hitung persentase pakan
         white_area = cv2.countNonZero(thresh)
@@ -50,6 +54,16 @@ class FishFeederCamera:
         # Simpan frame terbaru
         self.latest_frame = frame.copy()
         return frame
+    
+    def get_threshold_frame(self):
+        """Mengembalikan frame threshold dalam format bytes"""
+        if self.latest_threshold is None:
+            return b''
+        
+        # Konversi threshold ke format RGB (dari grayscale)
+        threshold_rgb = cv2.cvtColor(self.latest_threshold, cv2.COLOR_GRAY2BGR)
+        _, buffer = cv2.imencode('.jpg', threshold_rgb)
+        return buffer.tobytes()
     
     def get_status(self):
         return {

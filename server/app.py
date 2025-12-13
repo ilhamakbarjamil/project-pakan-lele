@@ -1,5 +1,5 @@
 from flask import Flask, Response, render_template, jsonify
-import cv2  # PENTING: Tambahkan ini
+import cv2
 import threading
 import time
 from camera import FishFeederCamera
@@ -32,6 +32,19 @@ def video_feed():
                 _, buffer = cv2.imencode('.jpg', frame)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            time.sleep(0.1)
+    return Response(generate(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# Endpoint baru untuk threshold
+@app.route('/threshold_feed')
+def threshold_feed():
+    def generate():
+        while True:
+            threshold_frame = camera.get_threshold_frame()
+            if threshold_frame:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + threshold_frame + b'\r\n')
             time.sleep(0.1)
     return Response(generate(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
