@@ -9,6 +9,7 @@ import time
 SERVER_URL = "http://localhost:5000/update"
 SEND_INTERVAL = 1.0  # kirim status tiap 1 detik
 
+latest_frame = None
 cap = cv2.VideoCapture(0)
 last_send = 0
 status = "STABIL"
@@ -34,6 +35,10 @@ while True:
     white_area = cv2.countNonZero(thresh)
     total_area = thresh.shape[0] * thresh.shape[1]
     percentage = (white_area / total_area) * 100
+
+    # global latest_frame
+    latest_frame = frame.copy()
+
 
     # Logika keputusan
     if percentage > 20:

@@ -1,27 +1,49 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, Response, render_template, jsonify
+import cv2  # PENTING: Tambahkan ini
+import threading
+import time
+from camera import FishFeederCamera
 
 app = Flask(__name__)
+camera = FishFeederCamera()
+status_data = {"percentage": 0.0, "status": "STABIL"}
 
-status_pakan = "STABIL"
-percentage_pakan = 0.0
+def update_status():
+    """Thread untuk update status secara berkala"""
+    global status_data
+    while True:
+        try:
+            camera.process_frame()
+            status_data = camera.get_status()
+        except Exception as e:
+            print(f"Error processing frame: {str(e)}")
+        time.sleep(0.5)
 
-@app.route("/update")
-def update():
-    global status_pakan, percentage_pakan
-    status_pakan = request.args.get("status", status_pakan)
-    percentage_pakan = float(request.args.get("percentage", percentage_pakan))
-    return {"status": status_pakan, "percentage": percentage_pakan}
-
-@app.route("/data")
-def data():
-    return jsonify({
-        "status": status_pakan,
-        "percentage": percentage_pakan
-    })
-
-@app.route("/")
+@app.route('/')
 def dashboard():
-    return render_template("index.html")
+    return render_template('index.html')
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+@app.route('/video_feed')
+def video_feed():
+    def generate():
+        while True:
+            frame = camera.process_frame()
+            if frame is not None:
+                _, buffer = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            time.sleep(0.1)
+    return Response(generate(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/data')
+def data():
+    return jsonify(status_data)
+
+if __name__ == '__main__':
+    # Jalankan thread untuk update status
+    status_thread = threading.Thread(target=update_status, daemon=True)
+    status_thread.start()
+    
+    # Jalankan Flask
+    app.run(host='0.0.0.0', port=5000, threaded=True)
