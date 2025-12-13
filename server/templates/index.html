@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard Monitoring Tambak</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+    body { font-family: Arial, sans-serif; background:#111; color:#eee; padding:20px }
+    h1 { margin-bottom:5px }
+    .card { background:#1e1e1e; padding:15px; border-radius:8px; margin-bottom:15px }
+    .status { font-size:1.2em; font-weight:bold }
+  </style>
+  </head>
+  <body>
+
+    <h1>Dashboard Monitoring Tambak</h1>
+    <p>Real-time Image Processing & IoT</p>
+
+    <div class="card">
+      <div>Status Saat Ini:</div>
+      <div id="status" class="status">-</div>
+      <div id="persen">Sisa Pakan: - %</div>
+    </div>
+
+    <div class="card">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <script>
+const ctx = document.getElementById('chart');
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Sisa Pakan (%)',
+      data: [],
+      borderWidth: 2,
+      tension: 0.4   // <-- TAMBAHKAN INI
+    }]
+  },
+  options: {
+    scales: {
+      y: { min: 0, max: 100 }
+    }
+  }
+});
+
+async function updateData() {
+  try {
+    const res = await fetch('/data');
+    const data = await res.json();
+
+    document.getElementById('status').innerText = data.status;
+    document.getElementById('persen').innerText = `Sisa Pakan: ${data.percentage.toFixed(2)} %`;
+
+    const now = new Date().toLocaleTimeString();
+    chart.data.labels.push(now);
+    chart.data.datasets[0].data.push(data.percentage);
+
+    if (chart.data.labels.length > 20) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+    }
+
+    chart.update();
+  } catch (e) {
+    console.log('Server belum siap');
+  }
+}
+
+setInterval(updateData, 1000);
+</script>
+
+  </body>
+</html>

@@ -68,8 +68,14 @@ while True:
     current_time = time.time()
     if current_time - last_send > SEND_INTERVAL:
         try:
-            requests.get(SERVER_URL, params={"value": status}, timeout=0.3)
-            last_send = current_time
+            requests.get(
+                "http://localhost:5000/update",
+                params={
+                    "status": status,
+                    "percentage": percentage
+                },
+                timeout=0.3
+            )
         except:
             pass  # server belum jalan → tidak crash
 
