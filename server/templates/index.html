@@ -124,7 +124,7 @@
         padding: 20px;
         display: grid;
         grid-template-columns: 300px 1fr;
-        grid-template-rows: minmax(300px, auto) 1fr; /* Baris pertama flexible */
+        grid-template-rows: minmax(300px, auto) 1fr;
         gap: 15px;
         height: calc(100vh - 60px);
     }
@@ -205,12 +205,12 @@
     .status-warning { color: var(--bg-dark); background: var(--warning); }
     .status-critical { color: white; background: var(--danger); }
 
-    /* --- VIDEO SECTION UPDATED --- */
+    /* --- VIDEO SECTION FIXED --- */
     .video-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        height: 100%; /* Mengisi panel */
+        gap: 15px; /* Sedikit renggang agar lebih rapi */
+        height: 100%;
         min-height: 0;
     }
 
@@ -219,19 +219,18 @@
         background: #000;
         border: 1px solid var(--border-color);
         overflow: hidden;
-        /* Flexbox untuk menengahkan video */
+        /* Flexbox untuk memastikan konten di tengah */
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .video-frame img {
-        /* Memastikan gambar tidak terpotong (contain) */
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
-        height: auto;
-        object-fit: contain; 
+        /* PERUBAHAN UTAMA DISINI: */
+        width: 100%;      /* Paksa lebar memenuhi kontainer */
+        height: 100%;     /* Paksa tinggi memenuhi kontainer */
+        object-fit: contain; /* Jaga rasio asli agar tidak gepeng, tapi mentok sisi */
+        display: block;
     }
 
     .cam-overlay {
