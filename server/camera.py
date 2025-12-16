@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 class FishFeederCamera:
-    def __init__(self, camera_id=0):
+    def __init__(self, camera_id=2):
         self.cap = cv2.VideoCapture(camera_id)
         if not self.cap.isOpened():
             raise RuntimeError(f"Kamera tidak terdeteksi di index {camera_id}!")
